@@ -4,6 +4,16 @@ Hooks.once('init', () => {
 
   game.corpunk = game.corpunk || {};
 
+   const cssPath = "modules/corpunk-roll-system/styles/corpunk.css";
+  if (!document.querySelector(`link[href="${cssPath}"]`)) {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.type = "text/css";
+    link.href = cssPath;
+    document.head.appendChild(link);
+    console.log("Corpunk Roll System | CSS loaded");
+  }
+
   game.corpunk.rollD6Pool = async function ({ dice = 0 } = {}) {
     if (dice <= 0) {
       return new Dialog({
@@ -112,31 +122,13 @@ Hooks.once('init', () => {
   ChatMessage.create({
   user: game.user.id,
   content: `
-    <div class="corpunk-dice-box" style="
-      position: relative;
-      background: #f3e600;
-      border: 2px solid #444;
-      padding: 4px;
-      display: inline-block;
-      cursor: pointer;
-      margin-bottom: 4px;
-      user-select: none;
-      /* cut top-right corner using clip-path */
-      clip-path: polygon(
-        0 0,            /* top-left */
-        calc(100% - 16px) 0, /* top-right inset */
-        100% 16px,      /* top-right bevel point */
-        100% 100%,      /* bottom-right */
-        0 100%          /* bottom-left */
-      );
-    ">
+    <div class="corpunk-dice-box">
       <!-- Toggle button image -->
       <img src="modules/corpunk-roll-system/assets/deployer.svg" class="corpunk-toggle-img" style="
         width: 20px;
         height: 20px;
         transition: transform 0.5s ease;
         display: block;
-        margin-bottom: 4px;
       ">
 
       <!-- Dice tray, initially hidden -->
