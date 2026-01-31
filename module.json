@@ -1,0 +1,16 @@
+{
+  "id": "corpunk-roll-system",
+  "title": "Corpunk Roll System",
+  "description": "Custom d6 pool rolling system for Custom System Builder",
+  "version": "1.0.0",
+  "authors": [
+    { "name": "Your Name" }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "esmodules": [
+    "main.js"
+  ]
+}
