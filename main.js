@@ -1,17 +1,10 @@
-// Register module on Foundry init
+// main.js
 Hooks.once('init', () => {
   console.log("Corpunk D6 | Initializing module");
 
-  // Create global game.corpunk namespace if it doesn't exist
   game.corpunk = game.corpunk || {};
 
-  /**
-   * Roll a d6 pool
-   * @param {Object} options
-   * @param {number} options.dice - Number of d6 to roll
-   */
   game.corpunk.rollD6Pool = async function ({ dice = 0 } = {}) {
-    // If no dice specified, ask the user
     if (dice <= 0) {
       return new Dialog({
         title: "Roll d6 Pool",
@@ -35,28 +28,50 @@ Hooks.once('init', () => {
         },
         default: "roll"
       }).render(true);
+    } else {
+      await _rollDice(dice);
     }
-
-    await _rollDice(dice);
   };
 
-  // Internal helper
   async function _rollDice(numDice) {
-    // Create the Roll object
-    const roll = await new Roll(`${numDice}d6`).evaluate({async: true});
+    const roll = await new Roll(`${numDice}d6`).evaluate({ async: true });
 
-    // Show Dice So Nice if installed
     if (game.modules.get("dice-so-nice")?.active) {
       await game.dice3d.showForRoll(roll);
     }
 
-    // Count results for summary visuals
-    const counts = [0, 0, 0, 0, 0, 0];
-    for (const r of roll.dice[0].results) counts[r.result-1]++;
+    const counts = [0,0,0,0,0,0];
+    for (const r of roll.dice[0].results) counts[r.result - 1]++;
     const totalSixes = counts[5];
     const ordered = counts.slice().reverse();
+    const trayId = `dice-tray-${Date.now()}`;
 
-    // Build summary HTML
+    // Dice tray HTML
+    const diceTrayHTML = roll.dice[0].results.map(r => {
+      const value = r.result;
+      let bg = "#555";
+      let color = "#FFF";
+      if (value === 6) bg = "#2ECC71";
+      else if (value === 1) bg = "#E74C3C";
+      return `
+        <span style="
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          width:24px;
+          height:24px;
+          margin:1px;
+          border-radius:4px;
+          background:${bg};
+          color:${color};
+          font-weight:bold;
+          font-family:'Orbitron', sans-serif;
+          font-size:14px;
+        ">${value}</span>
+      `;
+    }).join("");
+
+    // Summary icons (always visible)
     const diceHTML = ordered.map((n, idx) => {
       const dieValue = 6 - idx;
       let src, size = 32;
@@ -93,12 +108,61 @@ Hooks.once('init', () => {
       `;
     }).join("");
 
-    // Create chat message with proper roll object
+    // Chat message content
     ChatMessage.create({
       user: game.user.id,
-      content: `<div style="display:flex; gap:1px; align-items:center;">${diceHTML}</div>`,
+      content: `
+        <div class="corpunk-dice-box" style="
+          background:#222;
+          border-radius:6px;
+          padding:4px;
+          display:inline-block;
+          cursor:pointer;
+          margin-bottom:4px;
+          user-select:none;
+        ">
+          <!-- Toggle button image -->
+          <img src="modules/your_module_name/assets/deployer.jpg" class="corpunk-toggle-img" style="
+            width:20px;
+            height:20px;
+            transition: transform 0.5s ease;
+            display:block;
+            margin-bottom:4px;
+          ">
+
+          <!-- Dice tray, initially hidden -->
+          <div class="corpunk-dice-tray" style="
+            display:none;
+            flex-wrap:wrap;
+            gap:2px;
+          ">${diceTrayHTML}</div>
+        </div>
+
+        <!-- Summary icons always visible -->
+        <div style="display:flex; gap:1px; align-items:center;">${diceHTML}</div>
+      `,
       type: CONST.CHAT_MESSAGE_TYPES.ROLL,
       roll
     });
   }
+
+  // Attach toggle logic
+  Hooks.on("renderChatMessage", (message, html) => {
+    const box = html.find(".corpunk-dice-box");
+    const tray = html.find(".corpunk-dice-tray");
+    const img = html.find(".corpunk-toggle-img");
+
+    if (box.length && tray.length && img.length) {
+      box.on("click", () => {
+        const isOpen = tray.is(":visible");
+        if (isOpen) {
+          tray.slideUp(300);  // smooth hide
+          img.css("transform", "rotate(0deg)");  // rotate back
+        } else {
+          tray.slideDown(300);  // smooth show
+          img.css("transform", "rotate(90deg)");  // rotate 90°
+        }
+      });
+    }
+  });
 });
