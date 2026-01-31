@@ -49,10 +49,10 @@ Hooks.once('init', () => {
     // Dice tray HTML
     const diceTrayHTML = roll.dice[0].results.map(r => {
       const value = r.result;
-      let bg = "#555";
+      let bg = "#444";
       let color = "#FFF";
-      if (value === 6) bg = "#2ECC71";
-      else if (value === 1) bg = "#E74C3C";
+      if (value === 6) bg = "#575";
+      else if (value === 1) bg = "#755";
       return `
         <span style="
           display:inline-flex;
@@ -109,41 +109,51 @@ Hooks.once('init', () => {
     }).join("");
 
     // Chat message content
-    ChatMessage.create({
-      user: game.user.id,
-      content: `
-        <div class="corpunk-dice-box" style="
-          background:#222;
-          border-radius:6px;
-          padding:4px;
-          display:inline-block;
-          cursor:pointer;
-          margin-bottom:4px;
-          user-select:none;
-        ">
-          <!-- Toggle button image -->
-          <img src="modules/your_module_name/assets/deployer.jpg" class="corpunk-toggle-img" style="
-            width:20px;
-            height:20px;
-            transition: transform 0.5s ease;
-            display:block;
-            margin-bottom:4px;
-          ">
+  ChatMessage.create({
+  user: game.user.id,
+  content: `
+    <div class="corpunk-dice-box" style="
+      position: relative;
+      background: #f3e600;
+      border: 2px solid #444;
+      padding: 4px;
+      display: inline-block;
+      cursor: pointer;
+      margin-bottom: 4px;
+      user-select: none;
+      /* cut top-right corner using clip-path */
+      clip-path: polygon(
+        0 0,            /* top-left */
+        calc(100% - 16px) 0, /* top-right inset */
+        100% 16px,      /* top-right bevel point */
+        100% 100%,      /* bottom-right */
+        0 100%          /* bottom-left */
+      );
+    ">
+      <!-- Toggle button image -->
+      <img src="modules/corpunk-roll-system/assets/deployer.svg" class="corpunk-toggle-img" style="
+        width: 20px;
+        height: 20px;
+        transition: transform 0.5s ease;
+        display: block;
+        margin-bottom: 4px;
+      ">
 
-          <!-- Dice tray, initially hidden -->
-          <div class="corpunk-dice-tray" style="
-            display:none;
-            flex-wrap:wrap;
-            gap:2px;
-          ">${diceTrayHTML}</div>
-        </div>
+      <!-- Dice tray, initially hidden -->
+      <div class="corpunk-dice-tray" style="
+        display: none;
+        flex-wrap: wrap;
+        gap: 2px;
+      ">${diceTrayHTML}</div>
+    </div>
 
-        <!-- Summary icons always visible -->
-        <div style="display:flex; gap:1px; align-items:center;">${diceHTML}</div>
-      `,
-      type: CONST.CHAT_MESSAGE_TYPES.ROLL,
-      roll
-    });
+    <!-- Summary icons always visible -->
+    <div style="display:flex; gap:1px; align-items:center;">${diceHTML}</div>
+  `,
+  type: CONST.CHAT_MESSAGE_TYPES.ROLL,
+  roll
+});
+
   }
 
   // Attach toggle logic
@@ -160,7 +170,7 @@ Hooks.once('init', () => {
           img.css("transform", "rotate(0deg)");  // rotate back
         } else {
           tray.slideDown(300);  // smooth show
-          img.css("transform", "rotate(90deg)");  // rotate 90°
+          img.css("transform", "rotate(-90deg)");  // rotate 90°
         }
       });
     }
